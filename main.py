@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font as font
 
 class MyApp:
     def __init__(self, root):
@@ -7,8 +8,8 @@ class MyApp:
         self.styles = {
             "mainFrame": {"bg": "white"},
             "innerFrame": {"bg": "white"},
-            "label": {"font": ("Helvetica", 14), "fg": "black", "bg": "white"},
-            "button": {"bg": "lightgreen", "fg": "black", "font": ("Helvetica", 12)}
+            "title": {"font": ("Helvetica", 40), "fg": "black", "bg": "white"},
+            "button": {"bg": "lightblue", "fg": "black", "font": ("Helvetica", 20)}
         }
 
         self.create_widgets()
@@ -23,7 +24,7 @@ class MyApp:
         innerFrame.pack(pady=50)  # Adds vertical space outside the frame
 
         # Add a label with the defined style
-        label = tk.Label(innerFrame, text="Welcome to Freaky Finance 999!", **self.styles["label"])
+        label = tk.Label(innerFrame, text="Welcome to Freaky Finance 999!", **self.styles["title"])
         label.pack(pady=10)
 
         # Create a frame to wrap buttons for centering
