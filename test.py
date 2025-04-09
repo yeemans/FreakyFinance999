@@ -9,8 +9,9 @@ class MyApp:
         self.frame = tk.Frame(root)
         self.frame.pack(padx=20, pady=20)
 
-        # list of dicts, one dict for each category. Dicts map strings to lists
-        self.expenses_by_category = [] 
+        # dictionary of lists. maps strings to lists of tuples with length 2.
+        # tuples are (expense_name, expense_cost)
+        self.expenses_by_category = {}
         
         # Create the button to add new columns
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
@@ -24,29 +25,46 @@ class MyApp:
         new_column = simpledialog.askstring("Input", "Enter the new column name:")
 
         if new_column:
-            self.expenses_by_category.append({new_column: []})
+            self.expenses_by_category[new_column] = []
             self.update_table()
 
-    def prompt_for_expense(self):
+    def prompt_for_expense(self, category_name): # expense_column is an index for expenses_by_category
         new_expense = simpledialog.askstring("Input", "Enter the new expense's name:")
+        if not new_expense: return
+
         new_cost = simpledialog.askfloat("Input", "Enter the dollar amount:")
+        self.expenses_by_category[category_name].append((new_expense, new_cost))
+        
+        self.update_table()
 
     def create_table(self):
         # Clear the existing table (if any)
         for widget in self.frame.winfo_children():
-            if isinstance(widget, tk.Label) and widget != self.add_column_button:
-                widget.destroy()
+            # ignore column labels
+            if widget != self.add_column_button: widget.destroy()
 
-        # Create labels for the current columns
-        for col, expense_list in enumerate(self.expenses_by_category):
-            category = list(expense_list.keys())[0]
+        # Create headers for the current columns
+        for col, expense_list in enumerate(self.expenses_by_category.items()):
+            category = expense_list[0]
             col_label = tk.Label(self.frame, text=category, relief="solid", width=15, height=2)
             col_label.grid(row=3, column=col, padx=5, pady=5)
 
+        # display expenses and "New Expense" buttons
+        for col, expense_category in enumerate(self.expenses_by_category.items()):
+            ROW_PADDING = 4
+            category_name, expense_list = expense_category
+            print([category_name, col])
 
-        for col, expense_category in enumerate(self.expenses_by_category):
-            cell = tk.Button(self.frame, text="Add Expense", relief="solid", command=None, width=15, height=2)
-            cell.grid(row=len(expense_category) + 3, column=col) # not sure why + 3 works
+            for row, expense in enumerate(expense_list):
+                expense_name, expense_cost = expense
+                expense_label = tk.Label(self.frame, text=f"{expense_name}: {expense_cost}")
+                expense_label.grid(row=row + ROW_PADDING, column=col)
+                print(self.expenses_by_category)
+                
+            add_expense_button = tk.Button(self.frame, text=f"Add {category_name} Expense", relief="solid", 
+                             command=lambda cat=category_name: self.prompt_for_expense(cat), 
+                             width=15, height=2)
+            add_expense_button.grid(row=ROW_PADDING + len(expense_list), column=col) # not sure why + 3 works
 
     def update_table(self):
         # Recreate the table with the updated column names
