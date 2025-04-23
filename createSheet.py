@@ -3,7 +3,6 @@ from tkinter import simpledialog
 import tkcalendar
 
 
-    
 class MyApp:
     def get_start_date(self):
         if self.start_calendar_widget: self.start_calendar_widget.destroy()
@@ -49,17 +48,12 @@ class MyApp:
         self.end_calendar_widget = None
         self.start_date = None
         self.end_date = None
+        self.total = 0
         
         self.frame = tk.Frame(root)
         self.frame.pack(padx=20, pady=20)
 
-        # date picker for start and end dates of sheet
-
-
-        # dictionary of lists. maps strings to lists of tuples with length 2.
-        # tuples are (expense_name, expense_cost)
         self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
-        
         # Create the button to add new columns
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
         self.add_column_button.grid(row=1, column=0, columnspan=1, pady=10)
@@ -105,8 +99,8 @@ class MyApp:
             col_label.grid(row=4, column=col, padx=5, pady=5)
 
         # display expenses and "New Expense" buttons
+        ROW_PADDING = 5
         for col, expense_category in enumerate(self.expenses_by_category.items()):
-            ROW_PADDING = 5
             category_name, expense_list = expense_category
             print([category_name, col])
 
@@ -116,15 +110,30 @@ class MyApp:
                 expense_label.grid(row=row + ROW_PADDING, column=col)
                 print(self.expenses_by_category)
                 
+
+            # display total cost of all items in the category
+            category_total = sum([cost for expense, cost in expense_list])
+            category_total_label = tk.Label(self.frame, text=f"Total: ${category_total}", relief="solid", 
+                             width=15, height=2)
+            category_total_label.grid(row=ROW_PADDING + len(expense_list), column=col) # not sure why + 3 works
+
             add_expense_button = tk.Button(self.frame, text=f"Add {category_name} Expense", relief="solid", 
                              command=lambda cat=category_name: self.prompt_for_expense(cat), 
                              width=25, height=2)
-            add_expense_button.grid(row=ROW_PADDING + len(expense_list), column=col) # not sure why + 3 works
+            add_expense_button.grid(row=ROW_PADDING + len(expense_list) + 1, column=col) # not sure why + 3 works
 
+        
     def update_table(self):
         # Recreate the table with the updated column names
         self.create_table()
 
+    def calculate_total(self):
+        total = 0
+        for list_of_expenses_in_category in self.expenses_by_category.items():
+            total += sum(list_of_expenses_in_category)
+
+        return total
+    
 if __name__ == "__main__":
     root = tk.Tk()
     app = MyApp(root)
