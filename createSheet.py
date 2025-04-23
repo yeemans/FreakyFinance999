@@ -3,6 +3,41 @@ from tkinter import simpledialog
 import tkcalendar
 
 
+import tkinter as tk
+
+import tkinter as tk
+
+class ScrollableFrame:
+    def __init__(self, root):
+        # Create a container frame for the canvas and scrollbars
+        container = tk.Frame(root)
+        container.pack(fill="both", expand=True)
+
+        # Create the canvas widget inside the container
+        canvas = tk.Canvas(container)
+        canvas.pack(side="top", fill="both", expand=True)
+
+        # Create a horizontal scrollbar linked to the canvas
+        horizontal_scrollbar = tk.Scrollbar(container, orient="horizontal", command=canvas.xview)
+        horizontal_scrollbar.pack(side="bottom", fill="x")
+
+        # Create a vertical scrollbar linked to the canvas
+        vertical_scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        vertical_scrollbar.pack(side="right", fill="y")
+
+        # Create a frame that will be placed inside the canvas
+        self.frame = tk.Frame(canvas)
+
+        # Create a window inside the canvas that will hold the frame
+        canvas.create_window((0, 0), window=self.frame, anchor="nw")
+
+        # Configure the canvas to update its view when the frame changes
+        self.frame.bind("<Configure>", lambda event: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        # Link the scrollbars to the canvas
+        canvas.configure(xscrollcommand=horizontal_scrollbar.set, yscrollcommand=vertical_scrollbar.set)
+
+
 class MyApp:
     def get_start_date(self):
         if self.start_calendar_widget: self.start_calendar_widget.destroy()
@@ -50,9 +85,7 @@ class MyApp:
         self.end_date = None
         self.total = 0
         
-        self.frame = tk.Frame(root)
-        self.frame.pack(padx=20, pady=20)
-
+        self.frame = ScrollableFrame(root).frame
         self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
         # Create the button to add new columns
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
