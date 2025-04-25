@@ -2,26 +2,18 @@ import tkinter as tk
 from tkinter import simpledialog
 import tkcalendar
 
-
-import tkinter as tk
-
-import tkinter as tk
-
 class ScrollableFrame:
     def __init__(self, root):
         # Create a container frame for the canvas and scrollbars
         container = tk.Frame(root)
         container.pack(fill="both", expand=True)
 
-        # Create the canvas widget inside the container
         canvas = tk.Canvas(container)
         canvas.pack(side="top", fill="both", expand=True)
 
-        # Create a horizontal scrollbar linked to the canvas
+
         horizontal_scrollbar = tk.Scrollbar(container, orient="horizontal", command=canvas.xview)
         horizontal_scrollbar.pack(side="bottom", fill="x")
-
-        # Create a vertical scrollbar linked to the canvas
         vertical_scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
         vertical_scrollbar.pack(side="right", fill="y")
 
@@ -86,6 +78,9 @@ class MyApp:
         self.total = 0
         
         self.frame = ScrollableFrame(root).frame
+
+        # maps category names, strings, to lists of tuples.
+        # tuple[0] is the name of an expense, tuple[1] is its cost
         self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
         # Create the button to add new columns
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
@@ -95,7 +90,7 @@ class MyApp:
                                            command=self.get_start_date)
         self.start_date_button.grid(row=1, column=1, columnspan=1, pady=10)
 
-        self.end_date_button = tk.Button(self.frame, text="End: 5/22/2025", 
+        self.end_date_button = tk.Button(self.frame, text="End: 4/22/2025", 
                                          command=self.get_end_date)
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         # Create the initial table
