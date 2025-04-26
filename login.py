@@ -3,23 +3,23 @@ from sqlalchemy.orm import sessionmaker
 from database import User, Sheet
 import bcrypt
 import tkinter as tk
+import main
 
 engine = create_engine('sqlite:///database.db')  # or your DB of choice
 Session = sessionmaker(bind=engine)
 session = Session()
 
 
-class MyApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.config(bg="white")
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
         self.styles = {
             "mainFrame": {"bg": "white"},
             "innerFrame": {"bg": "white"},
             "title": {"font": ("Helvetica", 40), "fg": "black", "bg": "white"},
             "button": {"bg": "lightblue", "fg": "black", "font": ("Helvetica", 20)}
         }
-
+        self.error_message = ""
         self.create_widgets()
     # Method to set the password (hashes it before storing)
     def generate_password(self, password):
@@ -31,41 +31,53 @@ class MyApp:
         if not user: return False
 
         password_hash = user.password_hash
-        print(bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')))
-        return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        logged_in = bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        self.show_main_page(logged_in)
 
     def register(self, username, password):
         password_hash = self.generate_password(password)
         user_model = User(username=username, password_hash=password_hash)
         
-        session.add(user_model)
-        session.commit()
+        try:
+            session.add(user_model)
+            session.commit()
+        except:
+            session.rollback()
+            print("username is in use.")
 
     def create_widgets(self):
         # Defining the first row
-        lblfrstrow = tk.Label(root, text ="Username -", )
+        lblfrstrow = tk.Label(self, text ="Username -", )
         lblfrstrow.place(x = 50, y = 20)
         
-        Username = tk.Entry(root, width = 35)
+        Username = tk.Entry(self, width = 35)
         Username.place(x = 150, y = 20, width = 100)
         
-        lblsecrow = tk.Label(root, text ="Password -")
+        lblsecrow = tk.Label(self, text ="Password -")
         lblsecrow.place(x = 50, y = 50)
         
-        password = tk.Entry(root, width = 35)
+        password = tk.Entry(self, width = 35)
         password.place(x = 150, y = 50, width = 100)
         
-        submitbtn = tk.Button(root, text ="Login", 
+        loginbtn = tk.Button(self, text ="Login", 
                             bg ='blue', command =lambda: self.check_password(Username.get(), password.get()))
-        submitbtn.place(x = 150, y = 135, width = 55)
-  
+        loginbtn.place(x = 150, y = 135, width = 55)
 
-    def on_button_click(self):
-        print("Button clicked!")
+        registerbtn = tk.Button(self, text ="Register", 
+                            bg ='blue', command =lambda: self.register(Username.get(), password.get()))
+        registerbtn.place(x = 250, y = 135, width = 55)
+
+    def show_main_page(self, logged_in):
+        if logged_in:
+            self.main_page = main.App(self)
+            self.main_page.pack()
+        else:
+            # display error message 
+            error_label = tk.Label(self, text="Login not recognized")
+            error_label.place(x=150, y=100)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = MyApp(root)
-    root.mainloop()
+    app = App()
+    app.mainloop()
 
     #print(app.check_password("bluea88", "gobluea88"))

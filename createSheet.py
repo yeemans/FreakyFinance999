@@ -30,7 +30,7 @@ class ScrollableFrame:
         canvas.configure(xscrollcommand=horizontal_scrollbar.set, yscrollcommand=vertical_scrollbar.set)
 
 
-class MyApp:
+class App(tk.Frame):
     def get_start_date(self):
         if self.start_calendar_widget: self.start_calendar_widget.destroy()
         self.start_calendar_widget = tkcalendar.Calendar(self.root)
@@ -68,16 +68,16 @@ class MyApp:
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         self.end_calendar_widget.destroy()
 
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Create Sheets")
+    def __init__(self, master):
+        super().__init__(master)
+        self.root = master
         self.start_calendar_widget = None
         self.end_calendar_widget = None
         self.start_date = None
         self.end_date = None
         self.total = 0
         
-        self.frame = ScrollableFrame(root).frame
+        self.frame = ScrollableFrame(self.root).frame
 
         # maps category names, strings, to lists of tuples.
         # tuple[0] is the name of an expense, tuple[1] is its cost
@@ -162,7 +162,6 @@ class MyApp:
 
         return total
     
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MyApp(root)
-    root.mainloop()
+#if __name__ == "__main__":
+    #app = App()
+    #app.mainloop()
