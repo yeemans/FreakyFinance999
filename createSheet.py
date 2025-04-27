@@ -2,43 +2,35 @@ import tkinter as tk
 from tkinter import simpledialog
 import tkcalendar
 
-
-import tkinter as tk
-
-import tkinter as tk
-
 class ScrollableFrame:
     def __init__(self, root):
-        # Create a container frame for the canvas and scrollbars
-        container = tk.Frame(root)
-        container.pack(fill="both", expand=True)
+        # Create a container frame for the self.canvas and scrollbars
+        self.container = tk.Frame(root)
+        self.container.pack(fill="both", expand=True)
 
-        # Create the canvas widget inside the container
-        canvas = tk.Canvas(container)
-        canvas.pack(side="top", fill="both", expand=True)
-
-        # Create a horizontal scrollbar linked to the canvas
-        horizontal_scrollbar = tk.Scrollbar(container, orient="horizontal", command=canvas.xview)
-        horizontal_scrollbar.pack(side="bottom", fill="x")
-
-        # Create a vertical scrollbar linked to the canvas
-        vertical_scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
-        vertical_scrollbar.pack(side="right", fill="y")
-
-        # Create a frame that will be placed inside the canvas
-        self.frame = tk.Frame(canvas)
-
-        # Create a window inside the canvas that will hold the frame
-        canvas.create_window((0, 0), window=self.frame, anchor="nw")
-
-        # Configure the canvas to update its view when the frame changes
-        self.frame.bind("<Configure>", lambda event: canvas.configure(scrollregion=canvas.bbox("all")))
-
-        # Link the scrollbars to the canvas
-        canvas.configure(xscrollcommand=horizontal_scrollbar.set, yscrollcommand=vertical_scrollbar.set)
+        self.canvas = tk.Canvas(self.container)
+        self.canvas.pack(side="top", fill="both", expand=True)
 
 
-class MyApp:
+        self.horizontal_scrollbar = tk.Scrollbar(self.container, orient="horizontal", command=self.canvas.xview)
+        self.horizontal_scrollbar.pack(side="bottom", fill="x")
+        self.vertical_scrollbar = tk.Scrollbar(self.container, orient="vertical", command=self.canvas.yview)
+        self.vertical_scrollbar.pack(side="right", fill="y")
+
+        # Create a frame that will be placed inside the self.canvas
+        self.frame = tk.Frame(self.canvas)
+
+        # Create a window inside the self.canvas that will hold the frame
+        self.window_id = self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
+
+        # Configure the self.canvas to update its view when the frame changes
+        self.frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        # Link the scrollbars to the self.canvas
+        self.canvas.configure(xscrollcommand=self.horizontal_scrollbar.set, yscrollcommand=self.vertical_scrollbar.set)
+
+
+class App(tk.Frame):
     def get_start_date(self):
         if self.start_calendar_widget: self.start_calendar_widget.destroy()
         self.start_calendar_widget = tkcalendar.Calendar(self.root)
@@ -76,16 +68,20 @@ class MyApp:
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         self.end_calendar_widget.destroy()
 
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Create Sheets")
+    def __init__(self, master):
+        super().__init__(master)
+        self.root = master
         self.start_calendar_widget = None
         self.end_calendar_widget = None
         self.start_date = None
         self.end_date = None
         self.total = 0
         
-        self.frame = ScrollableFrame(root).frame
+        self.frame_object = ScrollableFrame(self.root)
+        self.frame = self.frame_object.frame
+
+        # maps category names, strings, to lists of tuples.
+        # tuple[0] is the name of an expense, tuple[1] is its cost
         self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
         # Create the button to add new columns
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
@@ -95,7 +91,7 @@ class MyApp:
                                            command=self.get_start_date)
         self.start_date_button.grid(row=1, column=1, columnspan=1, pady=10)
 
-        self.end_date_button = tk.Button(self.frame, text="End: 5/22/2025", 
+        self.end_date_button = tk.Button(self.frame, text="End: 4/22/2025", 
                                          command=self.get_end_date)
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         # Create the initial table
@@ -167,7 +163,19 @@ class MyApp:
 
         return total
     
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MyApp(root)
-    root.mainloop()
+    def destroy(self):
+        if not self.frame_object: return
+        canvas_id = self.frame_object.window_id
+        self.frame_object.canvas.delete(canvas_id)
+
+        for widg_name, widg in vars(self.frame_object).items():
+            if widg_name == "window_id": continue
+            print(widg)
+            widg.destroy()
+            
+        self.frame_object = None
+
+
+#if __name__ == "__main__":
+    #app = App()
+    #app.mainloop()
