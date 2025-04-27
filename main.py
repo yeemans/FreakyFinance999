@@ -13,7 +13,7 @@ class App(tk.Frame):
             "title": {"font": ("Helvetica", 40), "fg": "black", "bg": "white"},
             "button": {"bg": "lightblue", "fg": "black", "font": ("Helvetica", 20)}
         }
-
+        self.create_sheet = None
         self.create_widgets()
 
     def create_widgets(self):
@@ -37,9 +37,20 @@ class App(tk.Frame):
         createButton = tk.Button(buttonFrame, text="Create a sheet", command=self.link_to_create_sheet, **self.styles["button"])
         createButton.pack(side=tk.LEFT, padx=10)
 
-        viewButton = tk.Button(buttonFrame, text="View sheets", command=None, **self.styles["button"])
+        viewButton = tk.Button(buttonFrame, text="View sheets", command=self.link_to_view_sheets, **self.styles["button"])
         viewButton.pack(side=tk.LEFT, padx=10)
 
     def link_to_create_sheet(self):
-        self.create_sheet = createSheet.App(self)
-        self.create_sheet.pack()
+        if self.create_sheet:  # If create_sheet already exists, destroy it
+            self.create_sheet.destroy()
+            self.create_sheet = None  
+            return
+        
+        self.create_sheet = createSheet.App(self)  # Assuming createSheet.App() is another frame or window
+        self.create_sheet.pack(fill=tk.BOTH, expand=True)
+        
+    def link_to_view_sheets(self):
+        self.create_sheet.destroy()
+        
+
+

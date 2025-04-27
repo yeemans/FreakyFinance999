@@ -41,6 +41,7 @@ class App(tk.Tk):
         try:
             session.add(user_model)
             session.commit()
+            self.show_main_page(True)
         except:
             session.rollback()
             print("username is in use.")
