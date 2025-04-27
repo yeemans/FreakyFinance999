@@ -6,6 +6,7 @@ class App(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.root = master
+        self.UserID = master.UserID
         self.root.config(bg="white")
         self.styles = {
             "mainFrame": {"bg": "white"},
@@ -40,6 +41,10 @@ class App(tk.Frame):
         viewButton = tk.Button(buttonFrame, text="View sheets", command=self.link_to_view_sheets, **self.styles["button"])
         viewButton.pack(side=tk.LEFT, padx=10)
 
+        
+        quitButton = tk.Button(buttonFrame, text="Quit", command=self.quit, **self.styles["button"])
+        quitButton.pack(side=tk.LEFT, padx=10)
+
     def link_to_create_sheet(self):
         if self.create_sheet:  # If create_sheet already exists, destroy it
             self.create_sheet.destroy()
@@ -49,8 +54,11 @@ class App(tk.Frame):
         self.create_sheet = createSheet.App(self)  # Assuming createSheet.App() is another frame or window
         self.create_sheet.pack(fill=tk.BOTH, expand=True)
         
+        
     def link_to_view_sheets(self):
         self.create_sheet.destroy()
         
 
+    def quit(self):
+        self.root.destroy()
 

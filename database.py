@@ -31,8 +31,12 @@ class Sheet(Base):
 
     # json string storing all the expenses
     json_string: Mapped[str] = mapped_column(String(2000))
+    start_date: Mapped[Date] = mapped_column(Date)
+    end_date: Mapped[Date] = mapped_column(Date)
+
+    title: Mapped[str] = mapped_column(String(100))
     user = relationship("User", back_populates="sheets")
 
     def __repr__(self) -> str:
-        return f"User({self.username})"
+        return f"User({self.title})"
 Base.metadata.create_all(engine)

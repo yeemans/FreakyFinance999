@@ -1,6 +1,16 @@
+from datetime import datetime
 import tkinter as tk
 from tkinter import simpledialog
 import tkcalendar
+import json
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from database import Sheet
+
+engine = create_engine('sqlite:///database.db')  # or your DB of choice
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class ScrollableFrame:
     def __init__(self, root):
@@ -71,12 +81,12 @@ class App(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.root = master
+        self.UserID = master.UserID
         self.start_calendar_widget = None
         self.end_calendar_widget = None
-        self.start_date = None
-        self.end_date = None
+        self.start_date = "4/22/2025"
+        self.end_date = "5/22/2025"
         self.title = "Expense Sheet"
-        self.total = 0
         
         self.frame_object = ScrollableFrame(self.root)
         self.frame = self.frame_object.frame
@@ -93,6 +103,9 @@ class App(tk.Frame):
         self.title_entry = tk.Entry(self.frame, width=35)
         self.title_entry.grid(row=0, column=1, padx=10, pady=10)
         self.title_entry.insert(0, "Expense Sheet")
+
+        self.save_button = tk.Button(self.frame, text="Save Sheet", command=self.save_sheet)
+        self.save_button.grid(row=0, column=2, padx=10, pady=10)
 
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
         self.add_column_button.grid(row=1, column=0, columnspan=1, pady=10)
@@ -128,7 +141,8 @@ class App(tk.Frame):
         # Clear the existing table (if any)
         for widget in self.frame.winfo_children():
             # ignore column labels
-            if widget not in [self.add_column_button, self.start_date_button, self.end_date_button, self.title_label, self.title_entry]:
+            if widget not in [self.add_column_button, self.start_date_button, 
+                              self.end_date_button, self.title_label, self.title_entry, self.save_button]:
                 widget.destroy()
 
         # Create headers for the current columns
@@ -180,10 +194,27 @@ class App(tk.Frame):
 
         for widg_name, widg in vars(self.frame_object).items():
             if widg_name == "window_id": continue
-            print(widg)
             widg.destroy()
             
         self.frame_object = None
+
+    def save_sheet(self):
+        title = self.title_entry.get()
+        json_string = json.dumps(self.expenses_by_category)
+
+        start_date = datetime.strptime(self.start_date, "%m/%d/%Y").date()
+        end_date = datetime.strptime(self.end_date, "%m/%d/%Y").date()
+
+        sheet_model = Sheet(UserID = self.UserID, start_date=start_date,
+                            end_date=end_date, title=title, json_string=json_string)
+        try:
+            session.add(sheet_model)
+            session.commit()
+        except:
+            session.rollback()
+
+        print(json_string)
+        print(session.query(Sheet).all())
 
 
 #if __name__ == "__main__":
