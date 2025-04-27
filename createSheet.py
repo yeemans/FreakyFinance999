@@ -75,6 +75,7 @@ class App(tk.Frame):
         self.end_calendar_widget = None
         self.start_date = None
         self.end_date = None
+        self.title = "Expense Sheet"
         self.total = 0
         
         self.frame_object = ScrollableFrame(self.root)
@@ -84,6 +85,15 @@ class App(tk.Frame):
         # tuple[0] is the name of an expense, tuple[1] is its cost
         self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
         # Create the button to add new columns
+
+                
+        self.title_label = tk.Label(self.frame, text="Title: ")
+        self.title_label.grid(row=0, column=0, padx=10, pady=10, sticky="e")  # Align label to the right
+
+        self.title_entry = tk.Entry(self.frame, width=35)
+        self.title_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.title_entry.insert(0, "Expense Sheet")
+
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
         self.add_column_button.grid(row=1, column=0, columnspan=1, pady=10)
                                                                                 
@@ -118,7 +128,7 @@ class App(tk.Frame):
         # Clear the existing table (if any)
         for widget in self.frame.winfo_children():
             # ignore column labels
-            if widget not in [self.add_column_button, self.start_date_button, self.end_date_button]:
+            if widget not in [self.add_column_button, self.start_date_button, self.end_date_button, self.title_label, self.title_entry]:
                 widget.destroy()
 
         # Create headers for the current columns
