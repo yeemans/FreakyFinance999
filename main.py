@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.font as font
 import createSheet
+import viewSheet
 
 class App(tk.Frame):
     def __init__(self, master):
@@ -14,6 +15,8 @@ class App(tk.Frame):
             "title": {"font": ("Helvetica", 40), "fg": "black", "bg": "white"},
             "button": {"bg": "lightblue", "fg": "black", "font": ("Helvetica", 20)}
         }
+
+        self.loading_sheet = False # used to load a new sheet, or sheet with existing data
         self.create_sheet = None
         self.create_widgets()
 
@@ -56,8 +59,9 @@ class App(tk.Frame):
         
         
     def link_to_view_sheets(self):
-        self.create_sheet.destroy()
-        
+        if self.create_sheet: self.create_sheet.destroy()
+        self.view_sheet = viewSheet.App(self)  # Assuming createSheet.App() is another frame or window
+        self.view_sheet.pack(fill=tk.BOTH, expand=True)
 
     def quit(self):
         self.root.destroy()

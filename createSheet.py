@@ -43,7 +43,7 @@ class ScrollableFrame:
 class App(tk.Frame):
     def get_start_date(self):
         if self.start_calendar_widget: self.start_calendar_widget.destroy()
-        self.start_calendar_widget = tkcalendar.Calendar(self.root)
+        self.start_calendar_widget = tkcalendar.Calendar(self.root, date_pattern="mm/dd/yyyy")
         self.start_calendar_widget.pack()
         
         # replace the show start calendar button with a button to save the date
@@ -62,7 +62,7 @@ class App(tk.Frame):
 
     def get_end_date(self):
         if self.end_calendar_widget: self.end_calendar_widget.destroy()
-        self.end_calendar_widget = tkcalendar.Calendar(self.root)
+        self.end_calendar_widget = tkcalendar.Calendar(self.root, date_pattern="mm/dd/yyyy")
         self.end_calendar_widget.pack()
         
         # replace the show end calendar button with a button to save the date
@@ -84,25 +84,32 @@ class App(tk.Frame):
         self.UserID = master.UserID
         self.start_calendar_widget = None
         self.end_calendar_widget = None
+        self.loading_sheet = master.loading_sheet
+        print(self.loading_sheet)
+
         self.start_date = "4/22/2025"
         self.end_date = "5/22/2025"
         self.title = "Expense Sheet"
+        # maps category names, strings, to lists of tuples.
+        # tuple[0] is the name of an expense, tuple[1] is its cost
+        self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
+
+        # Create the button to add new columns
+        if self.loading_sheet: # sheet already exists, load its data
+            self.start_date = master.start_date
+            self.end_date = master.end_date
+            self.title = master.title
+            self.expenses_by_category = master.expenses_by_category
         
         self.frame_object = ScrollableFrame(self.root)
         self.frame = self.frame_object.frame
 
-        # maps category names, strings, to lists of tuples.
-        # tuple[0] is the name of an expense, tuple[1] is its cost
-        self.expenses_by_category = {"Housing": [], "Food": [], "Subscriptions": []}
-        # Create the button to add new columns
-
-                
         self.title_label = tk.Label(self.frame, text="Title: ")
         self.title_label.grid(row=0, column=0, padx=10, pady=10, sticky="e")  # Align label to the right
 
         self.title_entry = tk.Entry(self.frame, width=35)
         self.title_entry.grid(row=0, column=1, padx=10, pady=10)
-        self.title_entry.insert(0, "Expense Sheet")
+        self.title_entry.insert(0, self.title)
 
         self.save_button = tk.Button(self.frame, text="Save Sheet", command=self.save_sheet)
         self.save_button.grid(row=0, column=2, padx=10, pady=10)
@@ -110,11 +117,11 @@ class App(tk.Frame):
         self.add_column_button = tk.Button(self.frame, text="Add New Column", command=self.prompt_for_column)
         self.add_column_button.grid(row=1, column=0, columnspan=1, pady=10)
                                                                                 
-        self.start_date_button = tk.Button(self.frame, text=f"Start: 4/22/2025", 
+        self.start_date_button = tk.Button(self.frame, text=f"{self.start_date}", 
                                            command=self.get_start_date)
         self.start_date_button.grid(row=1, column=1, columnspan=1, pady=10)
 
-        self.end_date_button = tk.Button(self.frame, text="End: 4/22/2025", 
+        self.end_date_button = tk.Button(self.frame, text=f"{self.end_date}", 
                                          command=self.get_end_date)
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         # Create the initial table
@@ -201,20 +208,23 @@ class App(tk.Frame):
     def save_sheet(self):
         title = self.title_entry.get()
         json_string = json.dumps(self.expenses_by_category)
+        self.start_date = datetime.strptime(self.start_date, "%m/%d/%Y")
+        self.end_date = datetime.strptime(self.end_date, "%m/%d/%Y")
 
-        start_date = datetime.strptime(self.start_date, "%m/%d/%Y").date()
-        end_date = datetime.strptime(self.end_date, "%m/%d/%Y").date()
 
-        sheet_model = Sheet(UserID = self.UserID, start_date=start_date,
-                            end_date=end_date, title=title, json_string=json_string)
+        sheet_model = Sheet(UserID = self.UserID, start_date=self.start_date,
+                            end_date=self.end_date, title=title, json_string=json_string)
+
         try:
             session.add(sheet_model)
             session.commit()
         except:
+            print("rollback")
             session.rollback()
 
         print(json_string)
         print(session.query(Sheet).all())
+
 
 
 #if __name__ == "__main__":
