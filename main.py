@@ -18,6 +18,7 @@ class App(tk.Frame):
 
         self.loading_sheet = False # used to load a new sheet, or sheet with existing data
         self.create_sheet = None
+        self.view_sheet = None
         self.create_widgets()
 
     def create_widgets(self):

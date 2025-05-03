@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -15,7 +16,8 @@ class App(tk.Frame):
         self.root = master
         self.UserID = master.UserID
         self.sheets = self.get_sheets()
-
+        self.create_sheet = master.create_sheet
+        self.view_sheet = None
 
     def get_sheets(self):
         sheets = session.query(Sheet).filter(Sheet.UserID == self.UserID).all()
@@ -40,22 +42,44 @@ class App(tk.Frame):
         self.treeview.pack(expand=True, fill=tk.BOTH)
 
     def view_sheet(self):
+        if self.create_sheet: 
+            self.create_sheet.destroy()
+            self.create_sheet = None
         selected_item = self.treeview.selection()
         if not selected_item: return
 
         self.loading_sheet = True
         # Retrieve the values of the selected item
         item_values = self.treeview.item(selected_item[0])["values"]
-        print(item_values)
-        self.sheet_id = item_values[0]
+        self.SheetID = item_values[0]
         self.title = item_values[1]
-        self.start_date = item_values[2]
-        self.end_date = item_values[3]
+        self.start_date = self.reformat_date(item_values[2])
+        self.end_date = self.reformat_date(item_values[3])
 
         # get columns and expenses
-        sheet = session.query(Sheet).filter(Sheet.SheetID == self.sheet_id).first()
-        self.expenses_by_category = sheet.json_string
-        print(self.expenses_by_category)
+        sheet = session.query(Sheet).filter(Sheet.SheetID == self.SheetID).first()
+        self.expenses_by_category = json.loads(sheet.json_string)
 
+        # display the createSheet
+        if self.view_sheet: 
+            self.view_sheet.destroy()
+            self.view_sheet = None
 
+        # destroy the treeview when quitting
+        self.destroy()
+        self.view_sheet = createSheet.App(self)  # Assuming createSheet.App() is another frame or window
+        self.view_sheet.pack(fill=tk.BOTH, expand=True)
+
+    def reformat_date(self, date_string):
+        year_month_date = date_string.split("-")
+        return f"{year_month_date[1]}/{year_month_date[2]}/{year_month_date[0]}"
+    
+    def destroy(self):
+        if self.select_sheet_button:
+            self.select_sheet_button.destroy()
+            self.select_sheet_button = None
+
+        if self.treeview:
+            self.treeview.destroy()
+            self.treeview = None
         

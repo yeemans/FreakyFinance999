@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import simpledialog
 import tkcalendar
 import json
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
 
 from database import Sheet
@@ -20,7 +20,6 @@ class ScrollableFrame:
 
         self.canvas = tk.Canvas(self.container)
         self.canvas.pack(side="top", fill="both", expand=True)
-
 
         self.horizontal_scrollbar = tk.Scrollbar(self.container, orient="horizontal", command=self.canvas.xview)
         self.horizontal_scrollbar.pack(side="bottom", fill="x")
@@ -80,15 +79,16 @@ class App(tk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
+        self.master = master
         self.root = master
         self.UserID = master.UserID
         self.start_calendar_widget = None
         self.end_calendar_widget = None
         self.loading_sheet = master.loading_sheet
-        print(self.loading_sheet)
+        if self.loading_sheet: self.SheetID = master.SheetID
 
-        self.start_date = "4/22/2025"
-        self.end_date = "5/22/2025"
+        self.start_date = "04/22/2025"
+        self.end_date = "05/22/2025"
         self.title = "Expense Sheet"
         # maps category names, strings, to lists of tuples.
         # tuple[0] is the name of an expense, tuple[1] is its cost
@@ -126,6 +126,10 @@ class App(tk.Frame):
         self.end_date_button.grid(row=1, column=2, columnspan=1, pady=10)
         # Create the initial table
         self.create_table()
+
+        if master.view_sheet:
+            master.view_sheet.destroy()
+            master.view_sheet = None
 
     def prompt_for_column(self):
         # Prompt the user for a new column name
@@ -199,6 +203,15 @@ class App(tk.Frame):
         canvas_id = self.frame_object.window_id
         self.frame_object.canvas.delete(canvas_id)
 
+        if self.start_calendar_widget: 
+            self.start_calendar_widget.destroy()
+            self.start_calendar_widget = None
+
+        if self.end_calendar_widget: 
+            self.end_calendar_widget.destroy()
+            self.end_calendar_widget = None
+
+
         for widg_name, widg in vars(self.frame_object).items():
             if widg_name == "window_id": continue
             widg.destroy()
@@ -215,6 +228,20 @@ class App(tk.Frame):
         sheet_model = Sheet(UserID = self.UserID, start_date=self.start_date,
                             end_date=self.end_date, title=title, json_string=json_string)
 
+        if self.loading_sheet:
+            try:
+                sheet = session.query(Sheet).filter_by(SheetID=self.SheetID).first()
+                sheet.title = title
+                sheet.json_string = json_string
+                sheet.start_date = self.start_date
+                self.end_date = self.end_date
+                session.commit()
+            except:
+                print("rollback")
+                session.rollback()
+
+            self.destroy()
+            return
         try:
             session.add(sheet_model)
             session.commit()
@@ -222,8 +249,8 @@ class App(tk.Frame):
             print("rollback")
             session.rollback()
 
-        print(json_string)
-        print(session.query(Sheet).all())
+        self.destroy()
+
 
 
 
